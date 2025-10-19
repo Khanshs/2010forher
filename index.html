@@ -20,11 +20,6 @@
 </head>
 
 <body>
-        <ul class="led-lights">
-            <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
-            <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
-        </ul>
-
         <div class="image-slideshow-container">
             <img id="slide-img-1" class="slideshow-image">
             <img id="slide-img-2" class="slideshow-image">
@@ -234,6 +229,11 @@
         </script>
 
         <div id="castle">
+            <ul class="led-lights">
+                <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+                <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+            </ul>
+
             <div class="letter">
                 <div class="valentines">
                     <div class="envelope"></div>
@@ -347,8 +347,11 @@
                 setTimeout(() => {
                     document.querySelector("#text-click").style.display = "inherit";
                 }, 4000);
+                
+                // ĐÃ SỬA: Thêm 1 dòng để tắt slideshow
                 document.querySelector("#rose-t").onclick = function () {
                     document.querySelector("#rose-t").style.display = "none";
+                    //document.querySelector(".image-slideshow-container").style.display = "none"; // <-- TẮT SLIDESHOW
                     document.querySelector("#castle").style.display = "flex";
                     document.querySelector("#theSvg").style.display = "inherit"
 
@@ -608,68 +611,77 @@
                 // -----------------------------------------------------
 
 
-                // 2. LOGIC TỰ ĐỘNG ĐẾM ẢNH (Bà không cần đụng vào đây)
+                // 2. LOGIC TỰ ĐỘNG ĐẾM ẢNH
                 // -----------------------------------------------------
                 const availableImages = []; // Danh sách ảnh tìm được
                 let currentImageCheck = 1; // Bắt đầu đếm từ img1.jpg
 
                 function checkNextImage() {
-                    const img = new Image(); // Tạo 1 ảnh ảo
+                    const img = new Image();
                     const imgPath = `images/img${currentImageCheck}.${IMAGE_EXTENSION}`;
                     
                     img.onload = function() {
                         // ẢNH TỒN TẠI!
-                        // Thêm nó vào danh sách và đi check ảnh tiếp theo
                         availableImages.push(imgPath);
                         currentImageCheck++;
                         checkNextImage(); // Đệ quy
                     };
                     
                     img.onerror = function() {
-                        // ẢNH BỊ LỖI! (tức là không tìm thấy)
-                        // Vậy là mình đã đếm xong.
-                        // Giờ thì bắt đầu slideshow với các ảnh đã tìm được.
+                        // ẢNH BỊ LỖI! (đã đếm xong)
                         if (availableImages.length > 0) {
                             startSlideshow();
                         } else {
-                            console.error("Không tìm thấy ảnh nào! (img1.jpg, img2.jpg...)");
+                            console.error("Không tìm thấy ảnh nào!");
                         }
                     };
                     
-                    // Bắt đầu "check" ảnh
                     img.src = imgPath;
                 }
                 // -----------------------------------------------------
 
 
-                // 3. LOGIC CHẠY SLIDESHOW (Bà cũng không cần đụng vào)
+                // 3. LOGIC CHẠY SLIDESHOW (ĐÃ SỬA VỚI 4 GÓC)
                 // -----------------------------------------------------
                 function startSlideshow() {
 
                     function loadAndFadeIn() {
                         // Xáo trộn danh sách ảnh
                         availableImages.sort(() => Math.random() - 0.5);
-
-                        // Lấy 4 ảnh đầu tiên
                         const chosenImages = availableImages.slice(0, 4);
                         
+                        // -- SỬA LỖI ĐÈ NHAU --
+                        // 1. Định nghĩa 4 góc màn hình
+                        // [trên-min, trên-max, trái-min, trái-max]
+                        let zones = [
+                            { topMin: 10, topMax: 40, leftMin: 5, leftMax: 35 },  // Góc Trên-Trái
+                            { topMin: 10, topMax: 40, leftMin: 60, leftMax: 90 }, // Góc Trên-Phải
+                            { topMin: 50, topMax: 80, leftMin: 5, leftMax: 35 },  // Góc Dưới-Trái
+                            { topMin: 50, topMax: 80, leftMin: 60, leftMax: 90 }  // Góc Dưới-Phải
+                        ];
+
+                        // 2. Xáo trộn các góc
+                        zones.sort(() => Math.random() - 0.5);
+                        // -- KẾT THÚC SỬA LỖI --
+
                         for (let i = 0; i < imgHolders.length; i++) {
                             const img = imgHolders[i];
                             
-                            // Nếu có ảnh để hiển thị (ví dụ bà chỉ có 3 ảnh)
                             if (chosenImages[i]) {
                                 img.src = chosenImages[i];
 
-                                // Tạo vị trí ngẫu nhiên
-                                const randomTop = Math.random() * 70 + 10; 
-                                const randomLeft = Math.random() * 70 + 10; 
-                                const randomRotate = Math.random() * 40 - 20; 
+                                // 3. Lấy 1 góc đã xáo trộn
+                                const zone = zones[i];
+
+                                // 4. Tạo vị trí ngẫu nhiên BÊN TRONG góc đó
+                                const randomTop = Math.random() * (zone.topMax - zone.topMin) + zone.topMin;
+                                const randomLeft = Math.random() * (zone.leftMax - zone.leftMin) + zone.leftMin;
+                                const randomRotate = Math.random() * 30 - 15; // Xoay ít hơn 1 chút
 
                                 img.style.top = randomTop + 'vh';
                                 img.style.left = randomLeft + 'vw';
                                 img.style.transform = `rotate(${randomRotate}deg) scale(1)`;
                             } else {
-                                // Nếu không đủ 4 ảnh, ẩn cái khung ảnh thừa đi
                                 img.style.opacity = 0; 
                             }
                         }
